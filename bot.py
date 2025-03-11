@@ -5,7 +5,7 @@ import random
 import datetime
 import pytz
 from config import BACKGROUND_IMAGE, CHAT_ID, COLOR_NAME, COLOR_TEXT, DATA_FILE, FONT_NAME, FONT_SIZE_NAME, FONT_SIZE_TEXT, FONT_TEXT, MEDIA_FOLDER, TOKEN
-from data import members, metro_lines, metro_stations, TIME_VARIANTS, THOUGHTFUL_PHRASES, save_data
+from data import members, metro_lines, metro_stations, TIME_VARIANTS, THOUGHTFUL_PHRASES, savee_data
 import telebot
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
@@ -280,7 +280,7 @@ def change_respect(message):
             bot.reply_to(message, f"Не недостаток, а зона роста! Развивайся, {member['first_name']}... \nТеперь у тебя {member['respect']} балл(-ов).")
         else:
             bot.reply_to(message, f"ГНЕВ ПАПОЧКИ! Развивайся, {member['first_name']}... \nТеперь у тебя {member['respect']} балл(-ов).")
-    save_data()
+    savee_data()
 
 
 @bot.message_handler(commands=["рейтинг", "ranking"])

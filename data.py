@@ -923,7 +923,7 @@ if saved_data:
                 break
 
 # Функция для сохранения данных (вызываем её после каждого изменения респекта)
-def save_data():
+def savee_data():
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(members, f, ensure_ascii=False, indent=4)
 
