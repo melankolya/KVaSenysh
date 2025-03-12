@@ -341,7 +341,7 @@ def sous_dnya(message):
         bot.reply_to(message, "Лёш, задаёшь слишком много вопросов")
     elif message.from_user.username == "Liiiiiidik":
         bot.reply_to(message, "Лида, ты сегодня отлично выглядишь! Хорошего тебе дня!")
-    elif message.from_user.username == "@shamonova_a":
+    elif message.from_user.username == "shamonova_a":
         bot.reply_to(message, "Шами любимый пред.")
     else:
         bot.reply_to(message, "Медово-горчичный соус")
