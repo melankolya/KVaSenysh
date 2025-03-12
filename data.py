@@ -127,7 +127,7 @@ members = [
         "group": "МиУБ21-5",
         "phone": "+7(909)225-40-10",
         "email": "nikishin.av@mail.ru",
-        "telegram": "@anmaize_2",
+        "telegram": "@anmaize2",
         "metro": "ЦСКА"
     },
     {
