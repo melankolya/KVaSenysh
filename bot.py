@@ -146,6 +146,41 @@ def ship_people(message):
     ship_message = f"{person1['first_name']} {person1['last_name']} и {person2['first_name']} {person2['last_name']} {random.choice(phrases)}"
     bot.reply_to(message, ship_message)
 
+@bot.message_handler(commands=['хардшипперить', "hardship"])
+def hardship_people(message):
+    phrases = ['практикуют анальный фистинг', 'провели ночь на КВСнике', 'уединились после собрания']
+    
+    if message.reply_to_message:  # Проверяем, есть ли ответ на сообщение
+        reply_user = message.reply_to_message.from_user.username
+        if reply_user:
+            person1 = next((m for m in members if m['telegram'].strip('@') == reply_user), None)
+            if person1:
+                person2 = random.choice([m for m in members if m != person1])  # Выбираем случайного второго
+                ship_message = f"{person1['first_name']} {person1['last_name']} и {person2['first_name']} {person2['last_name']} {random.choice(phrases)}"
+                bot.reply_to(message, ship_message)
+                return
+    
+    # Если нет ответа на сообщение или не найден юзер — шипперим случайных людей
+    choiser = random.randint(0, 6)
+    if choiser == 0:
+        person1, person2 = random.sample(members, 2)
+        ship_message = f"{person1['first_name']} {person1['last_name']} и {person2['first_name']} {person2['last_name']} {random.choice(phrases)}"
+    elif choiser == 1:
+        person1, person2, person3 = random.sample(members, 3)
+        ship_message = f"{person1['first_name']} {person1['last_name']} изменяет {person2['first_name']} {person2['last_name']} с {person3['first_name']} {person3['last_name']}!"
+    elif choiser == 2:
+        person1, person2 = random.sample(members, 2)
+        ship_message = f"{person1['first_name']} {person1['last_name']} сделал горловой, {person2['first_name']} {person2['last_name']} остался доволен!"
+    elif choiser == 3:
+        person1, person2 = random.sample(members, 2)
+        ship_message = f"{person1['first_name']} {person1['last_name']} любит раздеваться, когда {person2['first_name']} {person2['last_name']} смотрит"
+    else:
+        person1, person2 = random.sample(members, 2)
+        ship_message = f"{person1['first_name']} {person1['last_name']} и {person2['first_name']} {person2['last_name']} {random.choice(phrases)}"
+    
+        
+    bot.reply_to(message, ship_message)
+    
 
 @bot.message_handler(commands=["совместимость", "compat"])
 def compatibility(message):
@@ -350,7 +385,7 @@ def sous_dnya(message):
         bot.reply_to(message, "Медово-горчичный соус")
         
 @bot.message_handler(commands=['sosal', 'сосал'])
-def sous_dnya(message):
+def sosal(message):
     if message.from_user.username == "davlugusya":
         bot.reply_to(message, "Лёш, задаёшь слишком много вопросов")
     elif message.from_user.username == "Liiiiiidik":
@@ -361,7 +396,7 @@ def sous_dnya(message):
         bot.reply_to(message, "ДААААААААААААААА")
         
 @bot.message_handler(commands=['daddy', 'папочка'])
-def sous_dnya(message):
+def daddy(message):
     if message.from_user.username == "davlugusya":
         bot.reply_to(message, "У тебя другой папочка! @just_scvorov")
     elif message.from_user.username == "Liiiiiidik":
@@ -374,6 +409,8 @@ def sous_dnya(message):
         bot.reply_to(message, "Какой папочка, я сын твой! @melankolya\n Папочка вот: @tyoma_sigeda")
     elif message.from_user.username == "tyoma_sigeda":
         bot.reply_to(message, "Твой любящий внук: @melankolya")
+    elif message.from_user.username == "just_scvorov":
+        bot.reply_to(message, "@melankolya дядя твой, а ты папочка @davlugusya.")
     else:
         bot.reply_to(message, "@melankolya")
 
@@ -492,28 +529,28 @@ def generate_quote_image(text, author_name):
     return output
 
 # Команда /цитата
-# @bot.message_handler(commands=["цитата", "quote"])
-# def send_quote(message):
-#     if not message.reply_to_message or not message.reply_to_message.text:
-#         return  # Игнорируем, если нет ответа на сообщение
+@bot.message_handler(commands=["цитата", "quote"])
+def send_quote(message):
+    if not message.reply_to_message or not message.reply_to_message.text:
+        return  # Игнорируем, если нет ответа на сообщение
 
-#     text = message.reply_to_message.text
-#     author_telegram = f"@{message.reply_to_message.from_user.username}" if message.reply_to_message.from_user.username else None
-#     author_name = f"{message.reply_to_message.from_user.first_name} {message.reply_to_message.from_user.last_name}".strip() or "Квасёныш"
+    text = message.reply_to_message.text
+    author_telegram = f"@{message.reply_to_message.from_user.username}" if message.reply_to_message.from_user.username else None
+    author_name = f"{message.reply_to_message.from_user.first_name} {message.reply_to_message.from_user.last_name}".strip() or "Квасёныш"
 
-#     # Ищем автора в списке members
-#     author = next((m for m in members if m["telegram"] == author_telegram), None)
-#     if author:
-#         author_name = f"{author['first_name']} {author['last_name']}"
+    # Ищем автора в списке members
+    author = next((m for m in members if m["telegram"] == author_telegram), None)
+    if author:
+        author_name = f"{author['first_name']} {author['last_name']}"
 
-#     # Генерируем изображение
-#     img = generate_quote_image(text, author_name)
-#     os.makedirs(MEDIA_FOLDER, exist_ok=True)
-#     file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
-#     with open(file_path, "wb") as f:
-#         f.write(img.getvalue())
-#     img = generate_quote_image(text, author_name)
-#     bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
+    # Генерируем изображение
+    img = generate_quote_image(text, author_name)
+    os.makedirs(MEDIA_FOLDER, exist_ok=True)
+    file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
+    with open(file_path, "wb") as f:
+        f.write(img.getvalue())
+    img = generate_quote_image(text, author_name)
+    bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
 
 
 @bot.message_handler(commands=["мысль", "think"])
