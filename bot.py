@@ -715,5 +715,5 @@ def filter_by_zodiac(message):
 while True:
     try:
         bot.polling(none_stop=True, timeout=60)
-    except requests.exceptions.RequestException as e:
+    except:
         time.sleep(10)
