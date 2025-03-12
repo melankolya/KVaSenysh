@@ -492,28 +492,28 @@ def generate_quote_image(text, author_name):
     return output
 
 # Команда /цитата
-@bot.message_handler(commands=["цитата", "quote"])
-def send_quote(message):
-    if not message.reply_to_message or not message.reply_to_message.text:
-        return  # Игнорируем, если нет ответа на сообщение
+# @bot.message_handler(commands=["цитата", "quote"])
+# def send_quote(message):
+#     if not message.reply_to_message or not message.reply_to_message.text:
+#         return  # Игнорируем, если нет ответа на сообщение
 
-    text = message.reply_to_message.text
-    author_telegram = f"@{message.reply_to_message.from_user.username}" if message.reply_to_message.from_user.username else None
-    author_name = f"{message.reply_to_message.from_user.first_name} {message.reply_to_message.from_user.last_name}".strip() or "Квасёныш"
+#     text = message.reply_to_message.text
+#     author_telegram = f"@{message.reply_to_message.from_user.username}" if message.reply_to_message.from_user.username else None
+#     author_name = f"{message.reply_to_message.from_user.first_name} {message.reply_to_message.from_user.last_name}".strip() or "Квасёныш"
 
-    # Ищем автора в списке members
-    author = next((m for m in members if m["telegram"] == author_telegram), None)
-    if author:
-        author_name = f"{author['first_name']} {author['last_name']}"
+#     # Ищем автора в списке members
+#     author = next((m for m in members if m["telegram"] == author_telegram), None)
+#     if author:
+#         author_name = f"{author['first_name']} {author['last_name']}"
 
-    # Генерируем изображение
-    img = generate_quote_image(text, author_name)
-    os.makedirs(MEDIA_FOLDER, exist_ok=True)
-    file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
-    with open(file_path, "wb") as f:
-        f.write(img.getvalue())
-    img = generate_quote_image(text, author_name)
-    bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
+#     # Генерируем изображение
+#     img = generate_quote_image(text, author_name)
+#     os.makedirs(MEDIA_FOLDER, exist_ok=True)
+#     file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
+#     with open(file_path, "wb") as f:
+#         f.write(img.getvalue())
+#     img = generate_quote_image(text, author_name)
+#     bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
 
 
 @bot.message_handler(commands=["мысль", "think"])
