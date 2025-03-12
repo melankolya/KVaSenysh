@@ -4,7 +4,7 @@ import telebot
 import random
 import datetime
 import pytz
-from config import BACKGROUND_IMAGE, CHAT_ID, COLOR_NAME, COLOR_TEXT, DATA_FILE, FONT_NAME, FONT_SIZE_NAME, FONT_SIZE_TEXT, FONT_TEXT, MEDIA_FOLDER, TOKEN
+from config import BACKGROUND_IMAGE, CHAT_ID, COLOR_NAME, COLOR_TEXT, DATA_FILE, FONT_NAME, FONT_SIZE_NAME, FONT_SIZE_TEXT, FONT_TEXT, MEDIA_FOLDER, RIGHT_NOW_FILE, TOKEN
 from data import members, metro_lines, metro_stations, TIME_VARIANTS, THOUGHTFUL_PHRASES, savee_data
 import telebot
 from PIL import Image, ImageDraw, ImageFont
@@ -21,8 +21,11 @@ bot.set_my_commands([
     telebot.types.BotCommand("pidor", "Определяет пидора дня"),
     telebot.types.BotCommand("quote", "Увековечить цитату"),
     telebot.types.BotCommand("think", "Цитата к размышлению"),
+    telebot.types.BotCommand("rightnow", "Выводит текст последнего райтнау"),
     telebot.types.BotCommand("when", "Заглянуть в будущее"),
     telebot.types.BotCommand("wheel", "ПИВНОЕ КОЛЕСО"),
+    telebot.types.BotCommand("sause", "Соус дня"),
+    telebot.types.BotCommand("daddy", "Отец бота"),
     telebot.types.BotCommand("compat", "Рассчёт совместимости двух активистов"),
     telebot.types.BotCommand("who", "Определяет, кто из комитета..."),
     telebot.types.BotCommand("hero", "Определяет хозяина болота на день"),
@@ -345,6 +348,69 @@ def sous_dnya(message):
         bot.reply_to(message, "Шами любимый пред.")
     else:
         bot.reply_to(message, "Медово-горчичный соус")
+        
+@bot.message_handler(commands=['sosal', 'сосал'])
+def sous_dnya(message):
+    if message.from_user.username == "davlugusya":
+        bot.reply_to(message, "Лёш, задаёшь слишком много вопросов")
+    elif message.from_user.username == "Liiiiiidik":
+        bot.reply_to(message, "А на вид культурная девушка... Выпьем кофе?")
+    elif message.from_user.username == "shamonova_a":
+        bot.reply_to(message, "Не выгоняй меня из чата пожааалуйста!")
+    else:
+        bot.reply_to(message, "ДААААААААААААААА")
+        
+@bot.message_handler(commands=['daddy', 'папочка'])
+def sous_dnya(message):
+    if message.from_user.username == "davlugusya":
+        bot.reply_to(message, "У тебя другой папочка! @just_scvorov")
+    elif message.from_user.username == "Liiiiiidik":
+        bot.reply_to(message, "Для тебя просто Коля. @melankolya")
+    elif message.from_user.username == "shamonova_a":
+        bot.reply_to(message, "Можно просто Николя. @melankolya")
+    elif message.from_user.username == "hue_moee":
+        bot.reply_to(message, "Что, любимая доченька? @melankolya")
+    elif message.from_user.username == "sinevvvaa":
+        bot.reply_to(message, "Какой папочка, я сын твой! @melankolya\n Папочка вот: @tyoma_sigeda")
+    elif message.from_user.username == "tyoma_sigeda":
+        bot.reply_to(message, "Твой любящий внук: @melankolya")
+    else:
+        bot.reply_to(message, "@melankolya")
+
+def load_right_now():
+    if os.path.exists(RIGHT_NOW_FILE):
+        with open(RIGHT_NOW_FILE, "r", encoding="utf-8") as file:
+            return json.load(file)
+    return {}
+
+def save_right_now(data):
+    with open(RIGHT_NOW_FILE, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+@bot.message_handler(func=lambda message: message.caption and "#райтнау" in message.caption.lower())
+def handle_right_now(message):
+    right_now_data = {
+        "message_id": message.message_id,
+        "user_id": message.from_user.id
+    }
+    save_right_now(right_now_data)
+
+@bot.message_handler(commands=["райтнау", "rightnow"])
+def send_last_right_now(message):
+    right_now_data = load_right_now()
+    if not right_now_data:
+        bot.reply_to(message, "Пока никто не отправлял #райтнау.")
+        return
+    
+    message_id = right_now_data["message_id"]
+    user_id = right_now_data["user_id"]
+    
+    # Ищем автора в members (замени members на свой список)
+    author = next((m for m in members if str(m.get("telegram", "")).strip("@") == str(user_id)), None)
+    author_name = author["first_name"] + " " + author["last_name"] if author else "Неизвестный автор"
+    
+    bot.reply_to(message, f"Автором последнего #райтнау был {author_name}.")
+    bot.send_message(message.chat.id, "Вот оно:", reply_to_message_id=message_id)
 
 
 @bot.message_handler(commands=["help"])
