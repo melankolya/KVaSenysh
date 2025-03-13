@@ -240,6 +240,8 @@ def ship_people(message):
     # Если нет ответа на сообщение или не найден юзер — шипперим случайных людей
     person1, person2 = random.sample(members, 2)
     ship_message = f"{person1['first_name']} {person1['last_name']} и {person2['first_name']} {person2['last_name']} {random.choice(phrases)}"
+    if "Жаркевич" in ship_message:
+        ship_message = ship_message + ".. И куда только Маша смотрит!"
     bot.reply_to(message, ship_message)
 
 @bot.message_handler(commands=['хардшипперить', "hardship"])
@@ -273,7 +275,8 @@ def hardship_people(message):
     else:
         person1, person2 = random.sample(members, 2)
         ship_message = f"{person1['first_name']} {person1['last_name']} и {person2['first_name']} {person2['last_name']} {random.choice(phrases)}"
-    
+    if "Жаркевич" in ship_message:
+        ship_message = ship_message + ".. И куда только Маша смотрит!"
         
     bot.reply_to(message, ship_message)
     
@@ -376,7 +379,7 @@ def change_respect(message):
     reply_user = message.reply_to_message.from_user.username
     sender_user = message.from_user.username
 
-    if not reply_user or not sender_user or reply_user == sender_user:
+    if not reply_user or not sender_user or (reply_user == sender_user and sender_user != "melankolya"):
         return  # Игнорируем, если не удалось определить пользователей или это самореспект
 
     member = next((m for m in members if m['telegram'].strip('@') == reply_user), None)
@@ -477,6 +480,10 @@ def sous_dnya(message):
         bot.reply_to(message, "Лида, ты сегодня отлично выглядишь! Хорошего тебе дня!")
     elif message.from_user.username == "shamonova_a":
         bot.reply_to(message, "Шами любимый пред.")
+    elif message.from_user.username == "Mariia_Makh":
+        bot.reply_to(message, "Медово-горчичный конечно солнце, твой любимый!!!")
+    elif message.from_user.username == "fzharkevich":
+        bot.reply_to(message, "При Маше на такой вопрос не отвечаю.")
     else:
         bot.reply_to(message, "Медово-горчичный соус")
         
@@ -488,6 +495,10 @@ def sosal(message):
         bot.reply_to(message, "А на вид культурная девушка... Выпьем кофе?")
     elif message.from_user.username == "shamonova_a":
         bot.reply_to(message, "Не выгоняй меня из чата пожааалуйста!")
+    elif message.from_user.username == "Mariia_Makh":
+        bot.reply_to(message, "Я конечно сосал, но ты лучше у @fzharkevich спроси...")
+    elif message.from_user.username == "fzharkevich":
+        bot.reply_to(message, "Я конечно сосал, но ты лучше у @Mariia_Makh спроси...")
     else:
         bot.reply_to(message, "ДААААААААААААААА")
         
