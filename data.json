@@ -1,6 +1,6 @@
 [
     {
-        "respect": 0,
+        "respect": 3,
         "sex": "Female",
         "formal_last_name": "Шамонова",
         "formal_first_name": "Арина",
@@ -192,12 +192,12 @@
         "metro": "ВДНХ"
     },
     {
-        "respect": 3,
+        "respect": 5,
         "sex": "Male",
         "formal_last_name": "Гусев",
         "formal_first_name": "Алексей",
-        "last_name": "Лусев",
-        "first_name": "Гёша",
+        "last_name": "Гусев",
+        "first_name": "Лёша",
         "mrespectdle_name": "Сергеевич",
         "birth_date": "24.08.2004",
         "faculty": "СНиМК",
@@ -320,7 +320,7 @@
         "metro": "Митино"
     },
     {
-        "respect": 0,
+        "respect": 6,
         "sex": "Female",
         "formal_last_name": "Юрьева",
         "formal_first_name": "Анна",
@@ -416,7 +416,7 @@
         "metro": "Щёлковская"
     },
     {
-        "respect": 1,
+        "respect": 3,
         "sex": "Female",
         "formal_last_name": "Дорофеева",
         "formal_first_name": "Лидия",
@@ -432,7 +432,7 @@
         "metro": "Сокол"
     },
     {
-        "respect": 2,
+        "respect": 3,
         "sex": "Male",
         "formal_last_name": "Панов",
         "formal_first_name": "Николай",
@@ -560,7 +560,7 @@
         "metro": "Марьино"
     },
     {
-        "respect": 0,
+        "respect": 7,
         "sex": "Male",
         "formal_last_name": "Ахременков",
         "formal_first_name": "Сергей",
@@ -672,7 +672,7 @@
         "metro": "Сокол"
     },
     {
-        "respect": 1,
+        "respect": 3,
         "sex": "Female",
         "formal_last_name": "Фадеева",
         "formal_first_name": "Амелия",

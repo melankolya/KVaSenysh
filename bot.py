@@ -4,7 +4,7 @@ import telebot
 import random
 import datetime
 import pytz
-from config import BACKGROUND_IMAGE, CHAT_ID, COLOR_NAME, COLOR_TEXT, DATA_FILE, FONT_NAME, FONT_SIZE_NAME, FONT_SIZE_TEXT, FONT_TEXT, MEDIA_FOLDER, RIGHT_NOW_FILE, TOKEN
+from config import ALLOWED_USERS, BACKGROUND_IMAGE, CHAT_ID, COLOR_NAME, COLOR_TEXT, DATA_FILE, FONT_NAME, FONT_SIZE_NAME, FONT_SIZE_TEXT, FONT_TEXT, MEDIA_FOLDER, RIGHT_NOW_FILE, TOKEN
 from data import members, metro_lines, metro_stations, TIME_VARIANTS, THOUGHTFUL_PHRASES, savee_data
 import telebot
 from PIL import Image, ImageDraw, ImageFont
@@ -87,6 +87,67 @@ def send_member_info(message, member):
     )
     bot.reply_to(message, info)
     
+import re
+
+@bot.message_handler(func=lambda message: re.search(r'\bдоброе\b.*\bутро\b.*\bквс\b', message.text, re.IGNORECASE))
+def good_morning_kvs(message):
+    user_telegram = f"@{message.from_user.username}" if message.from_user.username else None
+    member = next((m for m in members if m["telegram"] == user_telegram), None)
+
+    first_name = member["first_name"] if member else "Квасёныш"
+    if member["telegram"] == "@Liiiiiidik":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nЧертовски вкусного кофе!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@davlugusya":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nЧертовски... Найди девушку уже!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@Mariia_Makh":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nФедя всё ещё твой, и это чертовски классно!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@sinevvvaa":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nЧертовски синего дня!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@shamonova_a":
+        bot.reply_to(message, 
+                 f"Доброе утро, любимый пред ❤️🖤\nЧертовски тёплых активистов!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@just_scvorov":
+        bot.reply_to(message, 
+                 f"Доброе утро, мой главный юзер ❤️🖤\nНе мучай меня сегодня пожалуйста!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@fzharkevich":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nМаша всё ещё твоя, и это чертовски классно!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@hue_moee":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nПапа всегда рядом!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@rn_iaa":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nЧертовски хорошо, что ты проснулась, ведь теперь мир точно полон красоты и эстетики!",
+                 parse_mode="Markdown")
+    elif member["telegram"] == "@tyoma_sigeda":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nОоо дед!!! Чертовски хорошо, что ты встал, я уже начал переживать.",
+                 parse_mode="Markdown")
+    else:
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nЧертовски хорошего дня!",
+                 parse_mode="Markdown")
+
+@bot.message_handler(func=lambda message: re.search(r'\bспокойной\b.*\bночи\b.*\bквс\b', message.text, re.IGNORECASE))
+def good_morning_kvs(message):
+    user_telegram = f"@{message.from_user.username}" if message.from_user.username else None
+    member = next((m for m in members if m["telegram"] == user_telegram), None)
+
+    first_name = member["first_name"] if member else "Квасёныш"
+
+    bot.reply_to(message, f"Спокойной ночи, {first_name} ❤️🖤\nЧертовски сладких снов!")
 
 @bot.message_handler(commands=["инфа", "info"])
 def get_member_info(message):
@@ -125,6 +186,41 @@ def get_member_info(message):
 
     # Если найден ровно один квасёныш
     send_member_info(message, found_members[0])
+
+
+# Храним время последнего вызова команды каждым пользователем
+last_all_request = {}
+
+moscow_tz = pytz.timezone("Europe/Moscow")
+
+
+@bot.message_handler(commands=["all", "все"])
+def mention_everyone(message):
+    user_telegram = f"@{message.from_user.username}" if message.from_user.username else None
+
+    # Проверяем, есть ли пользователь в списке разрешённых
+    if user_telegram not in ALLOWED_USERS:
+        bot.reply_to(message, "Только для руководителей!")
+        return
+
+    now = time.time()  # Текущее время в секундах
+    last_request = last_all_request.get(user_telegram, 0)
+
+    # Если прошло меньше 20 секунд с последнего вызова
+    if now - last_request < 20:
+        mentions = " ".join(m["telegram"] for m in members if m["telegram"])
+        # mentions = "@melankolya"
+        bot.send_message(message.chat.id, mentions)
+    else:
+        # Обновляем время вызова команды
+        last_all_request[user_telegram] = now
+
+        current_time = datetime.datetime.now(moscow_tz).strftime("%H:%M")
+        bot.reply_to(
+            message,
+            f"Ты уверен(-а), что хочешь отметить всех участников чата? Сейчас {current_time}\n"
+            f"Для подтверждения отправь команду ещё раз: `/all`",
+        parse_mode="Markdown")
 
 
 @bot.message_handler(commands=['шипперить', "ship"])
@@ -532,8 +628,8 @@ def generate_quote_image(text, author_name):
 @bot.message_handler(commands=["цитата", "quote"])
 def send_quote(message):
     if not message.reply_to_message or not message.reply_to_message.text:
+        bot.reply_to(message, "Необходимо ответить на сообщение с текстом.")
         return  # Игнорируем, если нет ответа на сообщение
-
     text = message.reply_to_message.text
     author_telegram = f"@{message.reply_to_message.from_user.username}" if message.reply_to_message.from_user.username else None
     author_name = f"{message.reply_to_message.from_user.first_name} {message.reply_to_message.from_user.last_name}".strip() or "Квасёныш"
@@ -715,5 +811,9 @@ def filter_by_zodiac(message):
 while True:
     try:
         bot.polling(none_stop=True, timeout=60)
+    except KeyboardInterrupt:
+        print("Бот остановлен вручную.")
+        break  # Выходим из цикла, если нажато Ctrl + C
     except:
-        time.sleep(10)
+        print(f"Ошибка соединения")
+        time.sleep(10)  # Ждём 10 секунд перед новым запуском
