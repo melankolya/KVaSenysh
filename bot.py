@@ -154,6 +154,21 @@ def good_morning_kvs(message):
 
     bot.reply_to(message, f"Спокойной ночи, {first_name} ❤️🖤\nЧертовски сладких снов!")
 
+import random
+
+@bot.message_handler(commands=["хуй"])
+def dick_size(message):
+    sender_username = f"@{message.from_user.username}" if message.from_user.username else None
+    member = next((m for m in members if m["telegram"] == sender_username), None)
+
+    name = member["first_name"] if member else message.from_user.first_name
+    size = random.randint(3, 35)  # Генерируем размер от 3 до 35 см
+    if member["telegram"] == "@Liiiiiidik":
+        bot.reply_to(message, "Чтооооооо Лида матерится!!! @melankolya она спалилась!!!")
+    else:
+        bot.reply_to(message, f"{name}, твой хуй {size} см 🍆")
+
+
 @bot.message_handler(commands=["инфа", "info"])
 def get_member_info(message):
     args = message.text.split(maxsplit=2)
