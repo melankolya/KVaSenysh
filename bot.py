@@ -136,6 +136,10 @@ def good_morning_kvs(message):
         bot.reply_to(message, 
                  f"Доброе утро, {first_name} ❤️🖤\nОоо дед!!! Чертовски хорошо, что ты встал, я уже начал переживать.",
                  parse_mode="Markdown")
+    elif member["telegram"] == "@feinsinn":
+        bot.reply_to(message, 
+                 f"Доброе утро, {first_name} ❤️🖤\nДОБРОЕ УТРО АРТЁМ!",
+                 parse_mode="Markdown")
     else:
         bot.reply_to(message, 
                  f"Доброе утро, {first_name} ❤️🖤\nЧертовски хорошего дня!",
