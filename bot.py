@@ -1,5 +1,6 @@
 import json
 import os
+import threading
 import telebot
 import random
 import datetime
@@ -221,6 +222,51 @@ def mention_everyone(message):
             f"Ты уверен(-а), что хочешь отметить всех участников чата? Сейчас {current_time}\n"
             f"Для подтверждения отправь команду ещё раз: `/all`",
         parse_mode="Markdown")
+
+moscow_tz = pytz.timezone("Europe/Moscow")
+
+def send_wakeup_message(chat_id, member):
+    """Функция отправки сообщений пользователю."""
+    wakeup_text = f"{member['telegram']} {member['telegram']} {member['telegram']}\n\n" \
+                  f"Проснись! Вот номер телефона: {member['phone']}. Позвоните квасёнку!"
+    bot.send_message(chat_id, wakeup_text)
+
+@bot.message_handler(commands=["разбудить"])
+def set_wakeup_call(message):
+    """Обработчик команды /разбудить."""
+    command_parts = message.text.split()
+    if len(command_parts) != 2:
+        bot.reply_to(message, "❌ Введите время в формате ЧЧ:ММ, например: /разбудить 08:30")
+        return
+
+    match = re.fullmatch(r"([01]\d|2[0-3]):([0-5]\d)", command_parts[1])
+    if not match:
+        bot.reply_to(message, "❌ Некорректное время! Введите в формате ЧЧ:ММ (например, 07:45).")
+        return
+
+    hours, minutes = map(int, match.groups())
+
+    # Найти пользователя в members
+    sender_username = f"@{message.from_user.username}" if message.from_user.username else None
+    member = next((m for m in members if m["telegram"] == sender_username), None)
+
+    if not member:
+        bot.reply_to(message, "❌ Вас нет в базе, не могу вас разбудить.")
+        return
+
+    now = datetime.datetime.now(moscow_tz)
+    wakeup_time = now.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+
+    # Если время уже прошло сегодня — ставим будильник на следующий день
+    if wakeup_time <= now:
+        wakeup_time += datetime.timedelta(days=1)
+
+    time_diff = (wakeup_time - now).total_seconds()
+
+    bot.reply_to(message, f"✅ Будильник установлен на {wakeup_time.strftime('%H:%M')}. Чертовски сладких снов!")
+
+    # Отложенный запуск
+    threading.Thread(target=lambda: (time.sleep(time_diff), send_wakeup_message(message.chat.id, member))).start()
 
 
 @bot.message_handler(commands=['шипперить', "ship"])

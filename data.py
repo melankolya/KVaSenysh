@@ -95,7 +95,7 @@ members = [
     "group": "ИТМ22-7",
     "phone": "+7(920)424-90-49",
     "email": "nightyozhik@gmail.com",
-    "telegram": "@nightyozhik",
+    "telegram": "@NightYozhik",
     "metro": "Некрасовка"
   },
   {
