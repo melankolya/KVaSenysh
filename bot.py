@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import re
 import time
+import openai
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -207,6 +208,7 @@ def get_member_info(message):
     # Если найден ровно один квасёныш
     send_member_info(message, found_members[0])
 
+        
 
 # Храним время последнего вызова команды каждым пользователем
 last_all_request = {}
@@ -865,6 +867,22 @@ def get_zodiac_sign(day, month):
 @bot.message_handler(commands=['zodiac', 'знак'])
 def filter_by_zodiac(message):
     zodiac_name = message.text.split(maxsplit=1)[1] if len(message.text.split()) > 1 else ''
+    
+    if zodiac_name.lower() == "водолея":
+        lyrics = [
+            "ВСЁ ОТДАЛА И НИ О ЧЁМ НЕ ЖАЛЕЮ",
+            "ВСЁ ОТДАЛА И НИЧЕГО НЕ ОСТАЛОСЬ",
+            "А РЯДОМ СТОЛЬКО ЧЕЛОВЕК ПОТЕРЯЛОСЬ",
+            "Я ЭТИМ ЧУВСТВОМ УЖЕ ВЕК НЕ БОЛЕЮ",
+            "ВСЁ ОТДАЛА И НИ О ЧЁМ НЕ ЖАЛЕЮ",
+            "И ВОПРЕКИ ЛЕЧУ ВСЕМ АВТОПИЛОТАМ",
+            "ЖИВУ НАЗЛО ГОРОСКОПАМ"
+        ]
+        for line in lyrics:
+            bot.send_message(message.chat.id, line)
+            time.sleep(7)
+        return 
+    
     filtered_members = []
     
     for member in members:
