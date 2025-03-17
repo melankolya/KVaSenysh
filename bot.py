@@ -726,6 +726,49 @@ def send_quote(message):
     img = generate_quote_image(text, author_name)
     bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
 
+quote_parts = []
+quote_author = None
+
+@bot.message_handler(commands=["запомни"])
+def remember_quote(message):
+    global quote_parts, quote_author
+    
+    if not message.reply_to_message or not message.reply_to_message.text:
+        bot.reply_to(message, "Необходимо ответить на сообщение с текстом.")
+        return
+    
+    if not quote_parts:
+        quote_author = message.reply_to_message.from_user.username
+    
+    quote_parts.append(message.reply_to_message.text)
+    bot.reply_to(message, "Запомнил!")
+
+@bot.message_handler(commands=["отправь"])
+def send_stored_quote(message):
+    global quote_parts, quote_author
+    
+    if not quote_parts:
+        bot.reply_to(message, "Нет сохранённой цитаты.")
+        return
+    
+    author_name = "Квасёныш"
+    if quote_author:
+        author = next((m for m in members if m["telegram"] == f"@{quote_author}"), None)
+        if author:
+            author_name = f"{author['first_name']} {author['last_name']}"
+    
+    text = ", ".join(quote_parts)
+    img = generate_quote_image(text, author_name)
+    os.makedirs(MEDIA_FOLDER, exist_ok=True)
+    file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
+    with open(file_path, "wb") as f:
+        f.write(img.getvalue())
+    bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
+    
+    quote_parts = []
+    quote_author = None
+
+
 
 @bot.message_handler(commands=["мысль", "think"])
 def send_random_photo(message):
