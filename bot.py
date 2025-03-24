@@ -45,7 +45,127 @@ bot.set_my_commands([
 @bot.message_handler(commands=["start"])
 def start(message):
     bot.reply_to(message, "Привет! Я бот для Комитета Внешних Связей. Введи /help, чтобы узнать, что я умею.")
-  
+ 
+ # Функция для генерации цитаты
+def generate_quote_image(text, author_name):
+    # Загружаем фон
+    bg = Image.open(BACKGROUND_IMAGE).convert("RGB")
+    img_width, img_height = bg.size
+    img = bg.copy()
+    draw = ImageDraw.Draw(img)
+
+    # Загружаем шрифты
+    font_text = ImageFont.truetype(FONT_TEXT, FONT_SIZE_TEXT)
+    font_name = ImageFont.truetype(FONT_NAME, FONT_SIZE_NAME)
+
+    # Позиции текста
+    text_x = img_width * 0.05  # Отступ слева
+    text_y = img_height * 0.25  # Четверть изображения вверх
+
+    name_x = img_width * 0.25  # Чуть левее середины
+    name_y = img_height - 180  # Внизу изображения
+
+    # Ограничиваем длину текста
+    text = text[:200] + "..." if len(text) > 200 else text
+    text = f"«{text}»"  # Добавляем ёлочные кавычки
+
+    # Разбиваем цитату на строки, если она слишком длинная
+    max_width = img_width * 0.9
+    lines = []
+    words = text.split()
+    current_line = ""
+    for word in words:
+        test_line = f"{current_line} {word}".strip()
+        if draw.textbbox((0, 0), test_line, font=font_text)[2] < max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word
+    lines.append(current_line)
+
+    # Рисуем цитату (по левому краю)
+    y_offset = text_y
+    for line in lines:
+        draw.text((text_x, y_offset), line, font=font_text, fill=COLOR_TEXT)
+        y_offset += FONT_SIZE_TEXT * 1.2  # Межстрочный интервал
+
+    # Рисуем имя (увеличенное и сдвинутое влево)
+    if len(author_name) > 15:
+        draw.text((name_x, name_y), author_name, font=ImageFont.truetype(FONT_NAME, FONT_SIZE_NAME*0.9), fill=COLOR_NAME)
+    else:
+        draw.text((name_x, name_y), author_name, font=font_name, fill=COLOR_NAME)
+
+    # Сохраняем в буфер
+    output = BytesIO()
+    img.save(output, format="PNG")
+    output.seek(0)
+    return output
+
+# Команда /цитата
+@bot.message_handler(commands=["цитата", "quote"])
+def send_quote(message):
+    if not message.reply_to_message or not message.reply_to_message.text:
+        bot.reply_to(message, "Необходимо ответить на сообщение с текстом.")
+        return  # Игнорируем, если нет ответа на сообщение
+    text = message.reply_to_message.text
+    author_telegram = f"@{message.reply_to_message.from_user.username}" if message.reply_to_message.from_user.username else None
+    author_name = f"{message.reply_to_message.from_user.first_name} {message.reply_to_message.from_user.last_name}".strip() or "Квасёныш"
+
+    # Ищем автора в списке members
+    author = next((m for m in members if m["telegram"] == author_telegram), None)
+    if author:
+        author_name = f"{author['first_name']} {author['last_name']}"
+
+    # Генерируем изображение
+    img = generate_quote_image(text, author_name)
+    os.makedirs(MEDIA_FOLDER, exist_ok=True)
+    file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
+    with open(file_path, "wb") as f:
+        f.write(img.getvalue())
+    img = generate_quote_image(text, author_name)
+    bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
+
+quote_parts = []
+quote_author = None
+
+@bot.message_handler(commands=["запомни"])
+def remember_quote(message):
+    global quote_parts, quote_author
+    
+    if not message.reply_to_message or not message.reply_to_message.text:
+        bot.reply_to(message, "Необходимо ответить на сообщение с текстом.")
+        return
+    
+    if not quote_parts:
+        quote_author = message.reply_to_message.from_user.username
+    
+    quote_parts.append(message.reply_to_message.text)
+    bot.reply_to(message, "Запомнил!")
+
+@bot.message_handler(commands=["отправь"])
+def send_stored_quote(message):
+    global quote_parts, quote_author
+    
+    if not quote_parts:
+        bot.reply_to(message, "Нет сохранённой цитаты.")
+        return
+    
+    author_name = "Квасёныш"
+    if quote_author:
+        author = next((m for m in members if m["telegram"] == f"@{quote_author}"), None)
+        if author:
+            author_name = f"{author['first_name']} {author['last_name']}"
+    
+    text = ", ".join(quote_parts)
+    img = generate_quote_image(text, author_name)
+    os.makedirs(MEDIA_FOLDER, exist_ok=True)
+    file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
+    with open(file_path, "wb") as f:
+        f.write(img.getvalue())
+    bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
+    
+    quote_parts = []
+    quote_author = None 
     
 @bot.message_handler(commands=['metro'])
 def find_members_by_metro(message):
@@ -665,128 +785,6 @@ def show_help(message):
         "📌 */help* – показывает этот список команд.\n"
     )
     bot.reply_to(message, help_text, parse_mode="Markdown")
-    
-
-# Функция для генерации цитаты
-def generate_quote_image(text, author_name):
-    # Загружаем фон
-    bg = Image.open(BACKGROUND_IMAGE).convert("RGB")
-    img_width, img_height = bg.size
-    img = bg.copy()
-    draw = ImageDraw.Draw(img)
-
-    # Загружаем шрифты
-    font_text = ImageFont.truetype(FONT_TEXT, FONT_SIZE_TEXT)
-    font_name = ImageFont.truetype(FONT_NAME, FONT_SIZE_NAME)
-
-    # Позиции текста
-    text_x = img_width * 0.05  # Отступ слева
-    text_y = img_height * 0.25  # Четверть изображения вверх
-
-    name_x = img_width * 0.25  # Чуть левее середины
-    name_y = img_height - 180  # Внизу изображения
-
-    # Ограничиваем длину текста
-    text = text[:200] + "..." if len(text) > 200 else text
-    text = f"«{text}»"  # Добавляем ёлочные кавычки
-
-    # Разбиваем цитату на строки, если она слишком длинная
-    max_width = img_width * 0.9
-    lines = []
-    words = text.split()
-    current_line = ""
-    for word in words:
-        test_line = f"{current_line} {word}".strip()
-        if draw.textbbox((0, 0), test_line, font=font_text)[2] < max_width:
-            current_line = test_line
-        else:
-            lines.append(current_line)
-            current_line = word
-    lines.append(current_line)
-
-    # Рисуем цитату (по левому краю)
-    y_offset = text_y
-    for line in lines:
-        draw.text((text_x, y_offset), line, font=font_text, fill=COLOR_TEXT)
-        y_offset += FONT_SIZE_TEXT * 1.2  # Межстрочный интервал
-
-    # Рисуем имя (увеличенное и сдвинутое влево)
-    if len(author_name) > 15:
-        draw.text((name_x, name_y), author_name, font=ImageFont.truetype(FONT_NAME, FONT_SIZE_NAME*0.9), fill=COLOR_NAME)
-    else:
-        draw.text((name_x, name_y), author_name, font=font_name, fill=COLOR_NAME)
-
-    # Сохраняем в буфер
-    output = BytesIO()
-    img.save(output, format="PNG")
-    output.seek(0)
-    return output
-
-# Команда /цитата
-@bot.message_handler(commands=["цитата", "quote"])
-def send_quote(message):
-    if not message.reply_to_message or not message.reply_to_message.text:
-        bot.reply_to(message, "Необходимо ответить на сообщение с текстом.")
-        return  # Игнорируем, если нет ответа на сообщение
-    text = message.reply_to_message.text
-    author_telegram = f"@{message.reply_to_message.from_user.username}" if message.reply_to_message.from_user.username else None
-    author_name = f"{message.reply_to_message.from_user.first_name} {message.reply_to_message.from_user.last_name}".strip() or "Квасёныш"
-
-    # Ищем автора в списке members
-    author = next((m for m in members if m["telegram"] == author_telegram), None)
-    if author:
-        author_name = f"{author['first_name']} {author['last_name']}"
-
-    # Генерируем изображение
-    img = generate_quote_image(text, author_name)
-    os.makedirs(MEDIA_FOLDER, exist_ok=True)
-    file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
-    with open(file_path, "wb") as f:
-        f.write(img.getvalue())
-    img = generate_quote_image(text, author_name)
-    bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
-
-quote_parts = []
-quote_author = None
-
-@bot.message_handler(commands=["запомни"])
-def remember_quote(message):
-    global quote_parts, quote_author
-    
-    if not message.reply_to_message or not message.reply_to_message.text:
-        bot.reply_to(message, "Необходимо ответить на сообщение с текстом.")
-        return
-    
-    if not quote_parts:
-        quote_author = message.reply_to_message.from_user.username
-    
-    quote_parts.append(message.reply_to_message.text)
-    bot.reply_to(message, "Запомнил!")
-
-@bot.message_handler(commands=["отправь"])
-def send_stored_quote(message):
-    global quote_parts, quote_author
-    
-    if not quote_parts:
-        bot.reply_to(message, "Нет сохранённой цитаты.")
-        return
-    
-    author_name = "Квасёныш"
-    if quote_author:
-        author = next((m for m in members if m["telegram"] == f"@{quote_author}"), None)
-        if author:
-            author_name = f"{author['first_name']} {author['last_name']}"
-    
-    text = ", ".join(quote_parts)
-    img = generate_quote_image(text, author_name)
-    os.makedirs(MEDIA_FOLDER, exist_ok=True)
-    file_path = os.path.join(MEDIA_FOLDER, f"quote_{message.message_id}.jpg")
-    with open(file_path, "wb") as f:
-        f.write(img.getvalue())
-    bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
-    
-    quote_parts = []
-    quote_author = None
 
 
 
