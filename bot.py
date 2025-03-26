@@ -557,27 +557,6 @@ def get_hero_of_the_day(message):
     )
     bot.reply_to(message, activist_message)
 
-@bot.message_handler(func=lambda message: message.reply_to_message is not None)
-def auto_respect(message):
-    reply_user = message.reply_to_message.from_user.username
-    sender_user = message.from_user.username
-
-    if not reply_user or not sender_user or (reply_user == sender_user and sender_user != "melankolya"):
-        return  # Игнорируем, если не удалось определить пользователей или это самореспект
-
-    member = next((m for m in members if m['telegram'].strip('@') == reply_user), None)
-    if not member:
-        return  # Игнорируем, если пользователя нет в списке
-
-    if "respect" not in member:
-        member["respect"] = 0  
-    
-    text = message.text.lower()
-    if any(word in text for word in ["+", "❤️", "пасиб", "спс", "благодар", "респект"]):
-        member["respect"] += 1
-        bot.reply_to(message, f"Спасибо на хлеб не намажешь, а дополнительный балл - это всегда приятно. {member['first_name']}, \nТеперь у тебя {member['respect']} балл(-ов)!")
-    savee_data()
-
 @bot.message_handler(commands=["+", "-", "respect", "disrespect"])
 def change_respect(message):
     if not message.reply_to_message:  
@@ -963,6 +942,27 @@ def filter_by_zodiac(message):
     
     bot.reply_to(message, response)
     
+@bot.message_handler(func=lambda message: message.reply_to_message is not None)
+def auto_respect(message):
+    reply_user = message.reply_to_message.from_user.username
+    sender_user = message.from_user.username
+
+    if not reply_user or not sender_user or (reply_user == sender_user and sender_user != "melankolya"):
+        return  # Игнорируем, если не удалось определить пользователей или это самореспект
+
+    member = next((m for m in members if m['telegram'].strip('@') == reply_user), None)
+    if not member:
+        return  # Игнорируем, если пользователя нет в списке
+
+    if "respect" not in member:
+        member["respect"] = 0  
+    
+    text = message.text.lower()
+    if any(word in text for word in ["+", "❤️", "пасиб", "спс", "благодар", "респект"]):
+        member["respect"] += 1
+        bot.reply_to(message, f"Спасибо на хлеб не намажешь, а дополнительный балл - это всегда приятно. {member['first_name']}, \nТеперь у тебя {member['respect']} балл(-ов)!")
+    savee_data()
+
 while True:
     try:
         bot.polling(none_stop=True, timeout=60)
