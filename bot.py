@@ -90,10 +90,7 @@ def generate_quote_image(text, author_name):
         y_offset += FONT_SIZE_TEXT * 1.2  # Межстрочный интервал
 
     # Рисуем имя (увеличенное и сдвинутое влево)
-    if len(author_name) > 15:
-        draw.text((name_x, name_y), author_name, font=ImageFont.truetype(FONT_NAME, FONT_SIZE_NAME*0.9), fill=COLOR_NAME)
-    else:
-        draw.text((name_x, name_y), author_name, font=font_name, fill=COLOR_NAME)
+    draw.text((name_x, name_y), author_name, font=font_name, fill=COLOR_NAME)
 
     # Сохраняем в буфер
     output = BytesIO()
