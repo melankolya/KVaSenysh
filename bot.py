@@ -1021,6 +1021,17 @@ def stosorok(message):
                 bot.send_message(message.chat.id, line)
                 time.sleep(5)  # Раз в 7 секунд
                 
+    mama_lyrics = [
+        "MAMA, I'M A STAR, I'M A SUPER-DUPER STAR",
+        "MAMA, I'M A, I'M A STAR, I'M A SUPER-DUPER STAR",
+        "MAMA, I'M A STAR, I'M A SUPER-DUPER STAR",
+        "MAMA, I'M A, I'M A STAR, I'M A..."
+    ]
+    if "мама" in text or "mama" in text:
+        for line in mama_lyrics:
+            bot.send_message(message.chat.id, line)
+            time.sleep(7)  # Раз в 7 секунд
+                
 while True:
     try:
         bot.polling(none_stop=True, timeout=60)
