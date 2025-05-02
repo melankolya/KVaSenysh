@@ -1,7 +1,6 @@
 import json
 import os
 import threading
-import uuid
 import telebot
 import random
 import datetime
@@ -13,34 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import re
 import time
-from collections import defaultdict
-from datetime import datetime, timedelta
-
-user_command_timestamps = defaultdict(list)
-
-def check_command_limit(user_id):
-    now = datetime.now()
-    user_command_timestamps[user_id] = [
-        ts for ts in user_command_timestamps[user_id] 
-        if now - ts < timedelta(minutes=2)
-    ]
-    return len(user_command_timestamps[user_id]) >= 1
-
-def record_command(user_id):
-    user_command_timestamps[user_id].append(datetime.now())
-
-def add_command_limit_check(handler):
-    def wrapped(message):
-        user_id = message.from_user.id
-        
-        user_telegram = f"@{message.from_user.username}" if message.from_user.username else None
-            
-        if check_command_limit(user_id):
-            return
-            
-        record_command(user_id)
-        return handler(message)
-    return wrapped
+import openai
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -71,7 +43,6 @@ bot.set_my_commands([
 
 
 @bot.message_handler(commands=["start"])
-@add_command_limit_check
 def start(message):
     bot.reply_to(message, "Привет! Я бот для Комитета Внешних Связей. Введи /help, чтобы узнать, что я умею.")
  
@@ -194,7 +165,6 @@ def send_stored_quote(message):
     quote_author = None 
     
 @bot.message_handler(commands=['metro'])
-@add_command_limit_check
 def find_members_by_metro(message):
     line_query = message.text.split(maxsplit=1)
     if len(line_query) < 2:
@@ -305,7 +275,6 @@ def good_morning_kvs(message):
 import random
 
 @bot.message_handler(commands=["хуй"])
-@add_command_limit_check
 def dick_size(message):
     sender_username = f"@{message.from_user.username}" if message.from_user.username else None
     member = next((m for m in members if m["telegram"] == sender_username), None)
@@ -401,7 +370,6 @@ def send_wakeup_message(chat_id, member):
     bot.send_message(chat_id, wakeup_text)
 
 @bot.message_handler(commands=["разбудить"])
-@add_command_limit_check
 def set_wakeup_call(message):
     """Обработчик команды /разбудить."""
     command_parts = message.text.split()
@@ -440,7 +408,6 @@ def set_wakeup_call(message):
 
 
 @bot.message_handler(commands=['шипперить', "ship"])
-@add_command_limit_check
 def ship_people(message):
     phrases = ['теперь пара ❤️', 'ебутся', 'геи']
     
@@ -462,7 +429,6 @@ def ship_people(message):
     bot.reply_to(message, ship_message)
 
 @bot.message_handler(commands=['хардшипперить', "hardship"])
-@add_command_limit_check
 def hardship_people(message):
     phrases = ['практикуют анальный фистинг', 'провели ночь на КВСнике', 'уединились после собрания']
     
@@ -500,7 +466,6 @@ def hardship_people(message):
     
 
 @bot.message_handler(commands=["совместимость", "compat"])
-@add_command_limit_check
 def compatibility(message):
     if message.reply_to_message:  # Проверяем, есть ли ответ на сообщение
         reply_user = message.reply_to_message.from_user.username
@@ -528,7 +493,6 @@ def compatibility(message):
 
 
 @bot.message_handler(commands=['кто', "who"])
-@add_command_limit_check
 def who(message):
     person = random.sample(members, 1)[0]
     ret_message = f"{person['first_name']} {person['last_name']} {' '.join(message.text.split(' ')[1:]) if len(message.text.split(' ')) > 1 else ''}"
@@ -640,7 +604,6 @@ def change_respect(message):
 
 
 @bot.message_handler(commands=["рейтинг", "ranking"])
-@add_command_limit_check
 def show_respect_ranking(message):
     sorted_members = sorted(members, key=lambda m: m.get("respect", 0), reverse=True)
 
@@ -650,55 +613,9 @@ def show_respect_ranking(message):
     )
 
     bot.reply_to(message, f"🏆 *Рейтинг респекта КВС:* 🏆\n\n{ranking}", parse_mode="Markdown")
-
-
-
-# Функция для генерации уникального id, если его нет
-def generate_ids():
-    for member in members:
-        if "id" not in member:
-            member["id"] = str(uuid.uuid4())
-generate_ids()
-
-@bot.message_handler(commands=["добавить_тьютора"])
-def add_tutor(message):
-    if not message.reply_to_message:
-        bot.reply_to(message, "Эту команду нужно отправлять ответом на сообщение активиста.")
-        return
     
-    args = message.text.split()
-    if len(args) < 2:
-        bot.reply_to(message, "Использование: /добавить_тьютора [фамилия]")
-        return
-
-    tutor_last_name = args[1]
-    
-    # Найти активиста (кому добавляем тьютора)
-    target_user = next((m for m in members if m.get("telegram") == f"@{message.reply_to_message.from_user.username}"), None)
-    if not target_user:
-        bot.reply_to(message, "Активист не найден в базе данных.")
-        return
-
-    # Найти тьютора по фамилии
-    tutor = next((m for m in members if m.get("last_name") == tutor_last_name), None)
-    if not tutor:
-        bot.reply_to(message, "Тьютор с такой фамилией не найден.")
-        return
-
-    # Определить роль тьютора
-    role = "мама" if tutor.get("sex") == "Female" else "папа"
-    
-    # Добавить ссылку на тьютора
-    target_user["tutor"] = {"id": tutor["id"], "role": role}
-
-    # Сохранить обновленные данные
-    savee_data()
-    
-    bot.reply_to(message, f"{role.capitalize()} {tutor['formal_last_name']} теперь является тьютором {target_user['formal_first_name']}.")
-
 
 @bot.message_handler(commands=['вероятность', "prob"])
-@add_command_limit_check
 def probability_command(message):
     text = message.text.replace('/вероятность', '').strip()  # Убираем команду из текста
     if not text.lower().startswith("что "):  # Проверяем, начинается ли текст с "что "
@@ -711,7 +628,6 @@ def probability_command(message):
     
 
 @bot.message_handler(commands=['топ', "top"])
-@add_command_limit_check
 def top_command(message):
     text = message.text.replace('/топ', '').replace('/top', '').strip()
     
@@ -735,13 +651,11 @@ def top_command(message):
     
 
 @bot.message_handler(commands=['монетка', "coin"])
-@add_command_limit_check
 def coin(message):
     response = random.choice(["Орел", "Решка"])
     bot.reply_to(message, response)
     
 @bot.message_handler(commands=['sause', 'соус'])
-@add_command_limit_check
 def sous_dnya(message):
     if message.from_user.username == "davlugusya":
         bot.reply_to(message, "Лёш, задаёшь слишком много вопросов")
@@ -757,7 +671,6 @@ def sous_dnya(message):
         bot.reply_to(message, "Медово-горчичный соус")
         
 @bot.message_handler(commands=['sosal', 'сосал'])
-@add_command_limit_check
 def sosal(message):
     if message.from_user.username == "davlugusya":
         bot.reply_to(message, "Лёш, задаёшь слишком много вопросов")
@@ -773,7 +686,6 @@ def sosal(message):
         bot.reply_to(message, "ДААААААААААААААА")
         
 @bot.message_handler(commands=['daddy', 'папочка'])
-@add_command_limit_check
 def daddy(message):
     if message.from_user.username == "davlugusya":
         bot.reply_to(message, "У тебя другой папочка! @just_scvorov")
@@ -811,7 +723,6 @@ def handle_right_now(message):
     save_right_now(right_now_data)
 
 @bot.message_handler(commands=["райтнау", "rightnow"])
-@add_command_limit_check
 def send_last_right_now(message):
     right_now_data = load_right_now()
     if not right_now_data:
@@ -830,7 +741,6 @@ def send_last_right_now(message):
 
 
 @bot.message_handler(commands=["help"])
-@add_command_limit_check
 def show_help(message):
     help_text = (
         "🤖 *Список команд бота КВС:*\n\n"
@@ -855,7 +765,6 @@ def show_help(message):
 
 
 @bot.message_handler(commands=["мысль", "think"])
-@add_command_limit_check
 def send_random_photo(message):
     """Выбирает и отправляет случайное фото из сохраненных."""
     files = [f for f in os.listdir(MEDIA_FOLDER) if f.endswith(".jpg")]
@@ -871,7 +780,6 @@ def send_random_photo(message):
 
 
 @bot.message_handler(commands=["когда", "when"])
-@add_command_limit_check
 def when_command(message):
     args = message.text.split(maxsplit=1)
     if len(args) < 2:
@@ -922,7 +830,6 @@ def when_command(message):
         
 
 @bot.message_handler(commands=["колесо", "wheel"])
-@add_command_limit_check
 def spin_wheel(message):
     args = message.text.split()
     if len(args) != 2 or args[1] not in ["мальчики", "девочки"]:
@@ -957,7 +864,6 @@ def spin_wheel(message):
 
 
 @bot.message_handler(commands=['faculty', 'факультет'])
-@add_command_limit_check
 def filter_by_faculty(message):
     faculty_name = message.text.split(maxsplit=1)[1] if len(message.text.split()) > 1 else ''
     filtered_members = [member for member in members if member["faculty"].lower() == faculty_name.lower()]
@@ -996,7 +902,6 @@ def get_zodiac_sign(day, month):
     return "Неизвестный знак"
 
 @bot.message_handler(commands=['zodiac', 'знак'])
-@add_command_limit_check
 def filter_by_zodiac(message):
     zodiac_name = message.text.split(maxsplit=1)[1] if len(message.text.split()) > 1 else ''
     
@@ -1054,9 +959,7 @@ def auto_respect(message):
         member["respect"] += 1
         bot.reply_to(message, f"Спасибо на хлеб не намажешь, а дополнительный балл - это всегда приятно. {member['first_name']}, \nТеперь у тебя {member['respect']} балл(-ов)!")
     savee_data()
-    
-    
-             
+                
 while True:
     try:
         bot.polling(none_stop=True, timeout=60)
